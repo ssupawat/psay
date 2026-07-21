@@ -35,12 +35,12 @@ camelCase, snake_case"]
   G --> H["Custom lexicon
 ~/.psay/lexicon.json"]
   H --> I["macOS say
--v voice -r rate"]
+-v voice"]
 ```
 
-## Agent Protocol
+## Example
 
-See `AGENTS.md` for the prompt template and rules on how AI agents should call `psay` at key moments. The example below shows the format:
+Example format for calling `psay`:
 
 ```bash
 psay '[Action/Discovery] on [Target] because [Context]. [My Take / Advice]'
@@ -50,7 +50,7 @@ psay '[Action/Discovery] on [Target] because [Context]. [My Take / Advice]'
 
 - [ ] CLI receiver — parses `psay "text"` input
 - [ ] Regex-based phonetic processor — acronyms (`API` → `A-P-I`), camelCase and snake_case splitting (`getUserById` → `get user by I-D`), symbol and file extension mapping (`.go` → `dot G-O`, `!=` → `not equal`)
-- [ ] macOS `say` executor — calls `say` with configurable voice (`-v`) and rate (`-r`)
+- [ ] macOS `say` executor — calls `say` with configurable voice (`-v`)
 - [ ] LLM bypass — skip LLM for short, well-structured messages (zero latency)
 - [ ] LLM rewrite — condense long messages to 8–10 words: `[Core Problem] + [Action/Advice]`
 - [ ] LLM fallback — route to phonetic-only processing if LLM is unavailable
