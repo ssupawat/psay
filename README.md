@@ -19,12 +19,24 @@ macOS `say` is a solid TTS engine, but it reads developer text literally:
 
 psay sits between an AI agent and `say`, running a **phonetic pipeline** that transforms text before it reaches the TTS engine:
 
-1. **Acronym expansion** — `API` → `A-P-I`, `SQL` → `S-Q-L`
-2. **Identifier splitting** — `getUserById` → `get user by I-D`, `auth_service` → `auth service`
-3. **Symbol & extension mapping** — `.go` → `dot G-O`, `!=` → `not equal`
-4. **Custom lexicon** — user-defined pronunciation overrides (e.g., `"kubectl": "kube-control"`) in `~/.psay/lexicon.json`
-
-For long messages, psay can optionally route through an LLM to condense text to 8–10 words before speaking.
+```mermaid
+flowchart LR
+  A["psay 'text'"] --> B{Length check}
+  B -->|Short| C["Bypass LLM"]
+  B -->|Long| D["LLM rewrite
+8-10 words"]
+  C --> E["Acronym expansion
+API → A-P-I"]
+  D --> E
+  E --> F["Identifier split
+camelCase, snake_case"]
+  F --> G["Symbol & ext map
+.go → dot G-O"]
+  G --> H["Custom lexicon
+~/.psay/lexicon.json"]
+  H --> I["macOS say
+-v voice -r rate"]
+```
 
 ## Agent Protocol
 
