@@ -47,7 +47,7 @@ psay reuses these Go libraries instead of writing everything from scratch:
 | Pipeline step | Library | Why |
 |---|---|---|
 | CLI & config | [`spf13/cobra`](https://github.com/spf13/cobra) | Flag parsing, config loading, CLI standard |
-| CamelCase split | [`fatih/camelcase`](https://github.com/fatih/camelcase) | Splits `camelCase` into words 100% reliably |
+| CamelCase split | Inline helper (~20 lines) | Uses `unicode.IsUpper/IsLower` — no dependency needed. The archived library was trivial |
 | LLM client | [`sashabaranov/go-openai`](https://github.com/sashabaranov/go-openai) | OpenAI-compatible API (works with OpenAI, Ollama, Groq, Claude proxy) |
 | Home dir path | stdlib `os.UserHomeDir()` | No dependency needed. Available since Go 1.12 |
 | Audio output | macOS `/usr/bin/say` | Native `os/exec` — no audio library needed |
@@ -118,7 +118,7 @@ psay '[Action/Discovery] on [Target] because [Context]. [My Take / Advice]'
 ### Phase 2 — Phonetic Engine
 > Reads acronyms, file names, symbols, and camelCase correctly using existing parsing libs.
 
-- [ ] **Identifier & acronym processor** — `fatih/camelcase` for camelCase, regex for uppercase acronyms (`API` → `A-P-I`) and `snake_case`
+- [ ] **Identifier & acronym processor** — inline `splitCamelCase()` using `unicode.IsUpper/IsLower`, regex for uppercase acronyms (`API` → `A-P-I`) and `snake_case`
 - [ ] **Symbol & extension mapper** — map table for common symbols and file extensions (`.go` → `dot G-O`, `!=` → `not equal`)
 
 ### Phase 3 — Smart Summarization
