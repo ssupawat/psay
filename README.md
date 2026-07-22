@@ -49,7 +49,7 @@ psay reuses these Go libraries instead of writing everything from scratch:
 | CLI & config | [`spf13/cobra`](https://github.com/spf13/cobra) | Flag parsing, config loading, CLI standard |
 | CamelCase split | [`fatih/camelcase`](https://github.com/fatih/camelcase) | Splits `camelCase` into words 100% reliably |
 | LLM client | [`sashabaranov/go-openai`](https://github.com/sashabaranov/go-openai) | OpenAI-compatible API (works with OpenAI, Ollama, Groq, Claude proxy) |
-| Home dir path | [`mitchellh/go-homedir`](https://github.com/mitchellh/go-homedir) | Resolves `~` in config paths cross-platform |
+| Home dir path | stdlib `os.UserHomeDir()` | No dependency needed. Available since Go 1.12 |
 | Audio output | macOS `/usr/bin/say` | Native `os/exec` — no audio library needed |
 
 ## Configuration
@@ -110,7 +110,7 @@ psay '[Action/Discovery] on [Target] because [Context]. [My Take / Advice]'
 ### Phase 1 — Minimal Working Engine (MVP)
 > A working `psay` binary that reads config and speaks through macOS `say`.
 
-- [ ] **Setup & dependencies** — `go mod init psay`, add `mitchellh/go-homedir`, `spf13/cobra`
+- [ ] **Setup & dependencies** — `go mod init psay`, add `spf13/cobra` (homedir uses stdlib `os.UserHomeDir`)
 - [ ] **Config loader & auto-init** — read/create `~/.psay/settings.json` on first run
 - [ ] **CLI & audio output** — parse args via cobra, run `exec.Command("/usr/bin/say", "-v", voice, "-r", rate, text)`
 - [ ] **Custom lexicon replacer** — loop over `lexicon` entries in settings, `strings.ReplaceAll`
