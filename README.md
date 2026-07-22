@@ -6,6 +6,8 @@ Phonetic text processing for the macOS `say` command. Makes developer jargon rea
 
 → macOS `say` hears: *"Found deadlock in auth service dot G-O due to A-B-A problem in the mutex pool."*
 
+Built by **reusing existing Go libraries** — no reinventing the wheel.
+
 ## Problem
 
 macOS `say` is a solid TTS engine, but it reads developer text literally:
@@ -33,10 +35,48 @@ camelCase, snake_case"]
   F --> G["Symbol & ext map
 .go → dot G-O"]
   G --> H["Custom lexicon
-~/.psay/lexicon.json"]
+~/.psay/settings.json"]
   H --> I["macOS say
--v voice"]
+-v voice -r rate"]
 ```
+
+## Dependencies
+
+psay reuses these Go libraries instead of writing everything from scratch:
+
+| Pipeline step | Library | Why |
+|---|---|---|
+| CLI & config | [`spf13/cobra`](https://github.com/spf13/cobra) | Flag parsing, config loading, CLI standard |
+| CamelCase split | [`fatih/camelcase`](https://github.com/fatih/camelcase) | Splits `camelCase` into words 100% reliably |
+| LLM client | [`sashabaranov/go-openai`](https://github.com/sashabaranov/go-openai) | OpenAI-compatible API (works with OpenAI, Ollama, Groq, Claude proxy) |
+| Home dir path | [`mitchellh/go-homedir`](https://github.com/mitchellh/go-homedir) | Resolves `~` in config paths cross-platform |
+| Audio output | macOS `/usr/bin/say` | Native `os/exec` — no audio library needed |
+
+## Configuration
+
+Settings are stored at `~/.psay/settings.json`:
+
+```json
+{
+  "voice": "Samantha",
+  "rate": 200,
+  "llm": {
+    "enabled": true,
+    "bypass_word_threshold": 12,
+    "api_key": "env:LLM_API_KEY",
+    "model": "gpt-4o-mini"
+  },
+  "lexicon": {
+    "db": "database",
+    "err": "error",
+    "nil": "null",
+    "repo": "repository",
+    "auth": "authentication"
+  }
+}
+```
+
+The config auto-initializes if missing. Lexicon is a simple key-value map — edit directly in a text editor.
 
 ## Example: AGENTS.md
 
@@ -67,10 +107,23 @@ psay '[Action/Discovery] on [Target] because [Context]. [My Take / Advice]'
 
 ## Backlog
 
-- [ ] CLI receiver — parses `psay "text"` input
-- [ ] Regex-based phonetic processor — acronyms (`API` → `A-P-I`), camelCase and snake_case splitting (`getUserById` → `get user by I-D`), symbol and file extension mapping (`.go` → `dot G-O`, `!=` → `not equal`)
-- [ ] macOS `say` executor — calls `say` with configurable voice (`-v`)
-- [ ] LLM bypass — skip LLM for short, well-structured messages (zero latency)
-- [ ] LLM rewrite — condense long messages to 8–10 words: `[Core Problem] + [Action/Advice]`
-- [ ] LLM fallback — route to phonetic-only processing if LLM is unavailable
-- [ ] Custom lexicon — `~/.psay/lexicon.json` for user-defined pronunciation overrides (e.g., `"kubectl": "kube-control"`), edited manually
+### Phase 1 — Minimal Working Engine (MVP)
+> A working `psay` binary that reads config and speaks through macOS `say`.
+
+- [ ] **Setup & dependencies** — `go mod init psay`, add `mitchellh/go-homedir`, `spf13/cobra`
+- [ ] **Config loader & auto-init** — read/create `~/.psay/settings.json` on first run
+- [ ] **CLI & audio output** — parse args via cobra, run `exec.Command("/usr/bin/say", "-v", voice, "-r", rate, text)`
+- [ ] **Custom lexicon replacer** — loop over `lexicon` entries in settings, `strings.ReplaceAll`
+
+### Phase 2 — Phonetic Engine
+> Reads acronyms, file names, symbols, and camelCase correctly using existing parsing libs.
+
+- [ ] **Identifier & acronym processor** — `fatih/camelcase` for camelCase, regex for uppercase acronyms (`API` → `A-P-I`) and `snake_case`
+- [ ] **Symbol & extension mapper** — map table for common symbols and file extensions (`.go` → `dot G-O`, `!=` → `not equal`)
+
+### Phase 3 — Smart Summarization
+> Long messages get condensed via LLM using the OpenAI Go SDK.
+
+- [ ] **Bypass threshold check** — skip LLM if word count ≤ `bypass_word_threshold`
+- [ ] **LLM client integration** — `sashabaranov/go-openai` to call API, system prompt to condense to 8–10 words: `[Core Problem] + [Action/Advice]`
+- [ ] **Fallback** — if API call fails, route to phonetic processor directly
