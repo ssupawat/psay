@@ -46,7 +46,7 @@ psay reuses these Go libraries instead of writing everything from scratch:
 
 | Pipeline step | Library | Why |
 |---|---|---|
-| CLI & config | [`spf13/cobra`](https://github.com/spf13/cobra) | Flag parsing, config loading, CLI standard |
+| CLI parsing | stdlib `flag` package | Voice override via `-v` flag. Zero dependencies |
 | CamelCase split | Inline helper (~20 lines) | Uses `unicode.IsUpper/IsLower` — no dependency needed. The archived library was trivial |
 | LLM client | [`sashabaranov/go-openai`](https://github.com/sashabaranov/go-openai) | OpenAI-compatible API (works with OpenAI, Ollama, Groq, Claude proxy) |
 | Home dir path | stdlib `os.UserHomeDir()` | No dependency needed. Available since Go 1.12 |
@@ -110,7 +110,7 @@ psay '[Action/Discovery] on [Target] because [Context]. [My Take / Advice]'
 ### Phase 1 — Minimal Working Engine (MVP)
 > A working `psay` binary that reads config and speaks through macOS `say`.
 
-- [ ] **Setup & dependencies** — `go mod init psay`, add `spf13/cobra` (homedir uses stdlib `os.UserHomeDir`)
+- [ ] **Setup & dependencies** — `go mod init psay`. Only external dep is `go-openai` (everything else is stdlib or macOS native)
 - [ ] **Config loader & auto-init** — read/create `~/.psay/settings.json` on first run
 - [ ] **CLI & audio output** — parse args via cobra, run `exec.Command("/usr/bin/say", "-v", voice, "-r", rate, text)`
 - [ ] **Custom lexicon replacer** — loop over `lexicon` entries in settings, `strings.ReplaceAll`
