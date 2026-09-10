@@ -16,6 +16,12 @@ curl -fsSL https://raw.githubusercontent.com/ssupawat/psay/main/install.sh | sh
 
 Installs the `psay` binary to `~/.local/bin`, piper via uv/pipx, and the default voice. Requires macOS. Or with Go: `go install github.com/ssupawat/psay@latest`. First announce: `psay 'Hello from psay.'` — config auto-initializes.
 
+Uninstall with the matching script (keeps your lexicon unless `--purge`):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ssupawat/psay/main/uninstall.sh | sh
+```
+
 ## Problem
 
 Agent announces are spoken for human ears. The listening test showed piper's espeak front-end already reads most developer text correctly — camelCase (`getUserById` → "get user by I-D"), symbols (`x != y` → "ex not-equals why"), extensions (`auth_service.go` → "auth service dot go"), versions (`v1.2.3` → "vee one point two point three").
