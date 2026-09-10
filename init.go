@@ -21,7 +21,9 @@ var harnessFiles = []string{
 const psayStart = "<!-- psay:start -->"
 const psayEnd = "<!-- psay:end -->"
 
-// Appends the protocol inline (no @-imports) so every harness loads it verbatim.
+// Installs into instruction files that already exist; never creates files
+// for harnesses the user doesn't use. Appends inline (no @-imports) so every
+// harness loads it verbatim.
 func runInit() error {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -31,11 +33,19 @@ func runInit() error {
 	body := strings.Replace(protocolDoc, "# Audio Announcement Protocol", "## Audio Announcement Protocol", 1)
 	block := psayStart + "\n\n" + body + psayEnd + "\n"
 
-	installed := 0
+	installed, skipped := 0, 0
 	for _, rel := range harnessFiles {
 		path := filepath.Join(home, rel)
 		existing, err := os.ReadFile(path)
-		if err == nil && strings.Contains(string(existing), psayStart) {
+		if os.IsNotExist(err) {
+			fmt.Println("skipped (not present):", rel)
+			skipped++
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		if strings.Contains(string(existing), psayStart) {
 			fmt.Println("already installed:", rel)
 			continue
 		}
@@ -45,15 +55,12 @@ func runInit() error {
 		fmt.Println("installed:", rel)
 		installed++
 	}
-	fmt.Printf("%d/%d harness files updated\n", installed, len(harnessFiles))
+	fmt.Printf("%d installed, %d skipped, %d already installed\n", installed, skipped, len(harnessFiles)-installed-skipped)
 	return nil
 }
 
 func appendBlock(path, block string, existing []byte) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
-	}
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}

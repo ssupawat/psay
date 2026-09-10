@@ -51,7 +51,7 @@ The listening test killed the planned identifier splitter and symbol mapper — 
 
 ## Agent protocol
 
-[PSAY.md](./PSAY.md) is the announcement protocol for AI agents. Run `psay init` once to install it at user level into your harnesses' global instructions — Codex (`~/.codex/AGENTS.md`), Claude (`~/.claude/CLAUDE.md`), pi (`~/.pi/agent/AGENTS.md`), and ZCode (`~/.zcode/AGENTS.md`). Idempotent — safe to re-run. The whole protocol in one line:
+[PSAY.md](./PSAY.md) is the announcement protocol for AI agents. Run `psay init` once to install it at user level — it appends the protocol to the global instruction files that already exist: Codex (`~/.codex/AGENTS.md`), Claude (`~/.claude/CLAUDE.md`), pi (`~/.pi/agent/AGENTS.md`), ZCode (`~/.zcode/AGENTS.md`). It never creates files, so harnesses you don't use are skipped; idempotent, safe to re-run. The whole protocol in one line:
 
 ```bash
 psay '[Action/Discovery] on [Target] because [Context]. [My Take / Advice]'
