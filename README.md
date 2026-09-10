@@ -88,18 +88,5 @@ Settings live at `~/.psay/settings.json`:
 }
 ```
 
-The config auto-initializes if missing. Install the voice once: `python -m piper.download_voices en_US-lessac-medium --download-dir ~/.psay/voices`, then invoke piper with `--data-dir ~/.psay/voices`. `length_scale` is piper's phoneme length — higher is slower. Lexicon is a simple key-value map — edit directly in a text editor. New misreads found in daily use become lexicon entries.
+The config auto-initializes if missing. Install the voice once: `python -m piper.download_voices en_US-lessac-medium --download-dir ~/.psay/voices`, then invoke piper with `--data-dir ~/.psay/voices`. `length_scale` is piper's phoneme length — higher is slower. Lexicon is a simple key-value map — edit directly in a text editor. New misreads found in daily use become lexicon entries; code changes only if a whole token class proves broken.
 
-## Backlog
-
-### Phase 1 — Minimal Working Engine (MVP)
-> A working `psay` binary that reads config and speaks through Piper.
-
-- [x] **Install & listen** — piper-tts 1.8.0, voice `en_US-lessac-medium`. Result: espeak splits camelCase and snake_case, reads acronyms (`API`, `http`, `sql`), symbols (`!=`), extensions (`.go` → "dot go"), and versions natively. Misreads only: `aws` → "awz", `db` → "dee bee", `psay` → "say" — all lexicon material
-- [x] **Setup** — `go mod init psay`. Zero Go dependencies
-- [x] **Config loader & auto-init** — read/create `~/.psay/settings.json` on first run
-- [x] **CLI** — parse args via stdlib `flag`, `-v` voice override
-- [x] **Speak** — run `piper -m <voice> --length-scale <ls> -f <tmp.wav> -- <text>`, then `exec.Command("afplay", tmpWav)`
-- [x] **Custom lexicon replacer** — word-boundary regex, single pass (naive `strings.ReplaceAll` would corrupt "database" when replacing "db")
-
-Future misreads found in daily use get lexicon entries first. Code only if a whole token class proves broken.
