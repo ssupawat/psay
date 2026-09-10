@@ -51,7 +51,7 @@ The listening test killed the planned identifier splitter and symbol mapper — 
 
 ## Agent protocol
 
-[PSAY.md](./PSAY.md) is the announcement protocol for AI agents. Run `psay init` inside a project to write it there, then attach it: `@PSAY.md` import in `CLAUDE.md`, or paste into `AGENTS.md`. The whole protocol in one line:
+[PSAY.md](./PSAY.md) is the announcement protocol for AI agents. Run `psay init` inside a project to write it to `.claude/PSAY.md`, then attach it: `@.claude/PSAY.md` in `CLAUDE.md`, or the same line in `AGENTS.md`. The whole protocol in one line:
 
 ```bash
 psay '[Action/Discovery] on [Target] because [Context]. [My Take / Advice]'

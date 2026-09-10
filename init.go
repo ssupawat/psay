@@ -10,15 +10,19 @@ import (
 var protocolDoc string
 
 func runInit() error {
-	const path = "PSAY.md"
+	const dir = ".claude"
+	const path = dir + "/PSAY.md"
 	if _, err := os.Stat(path); err == nil {
-		fmt.Println("PSAY.md already exists in this directory.")
+		fmt.Println(path, "already exists.")
 	} else {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return err
+		}
 		if err := os.WriteFile(path, []byte(protocolDoc), 0o644); err != nil {
 			return err
 		}
-		fmt.Println("Wrote PSAY.md (audio announcement protocol).")
+		fmt.Println("Wrote", path, "(audio announcement protocol).")
 	}
-	fmt.Println("Activate: add '@PSAY.md' to CLAUDE.md, or 'Read PSAY.md for the audio announcement protocol.' to AGENTS.md.")
+	fmt.Println("Activate: add '@.claude/PSAY.md' to CLAUDE.md or AGENTS.md.")
 	return nil
 }
