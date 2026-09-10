@@ -7,38 +7,63 @@ import (
 	"testing"
 )
 
-func TestRunInitWritesProtocol(t *testing.T) {
-	t.Chdir(t.TempDir())
+func TestRunInitInstallsToAllHarnesses(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
 
 	if err := runInit(); err != nil {
 		t.Fatal(err)
 	}
-	data, err := os.ReadFile(filepath.Join(".claude", "PSAY.md"))
-	if err != nil {
-		t.Fatalf(".claude/PSAY.md not written: %v", err)
-	}
-	if !strings.Contains(string(data), "Audio Announcement Protocol") {
-		t.Error("embedded PSAY.md missing protocol heading")
+	for _, rel := range harnessFiles {
+		data, err := os.ReadFile(filepath.Join(home, rel))
+		if err != nil {
+			t.Fatalf("%s: %v", rel, err)
+		}
+		if !strings.Contains(string(data), psayStart) || !strings.Contains(string(data), "Audio Announcement Protocol") {
+			t.Errorf("%s missing protocol block", rel)
+		}
 	}
 }
 
-func TestRunInitKeepsExisting(t *testing.T) {
-	t.Chdir(t.TempDir())
+func TestRunInitIdempotent(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
 
-	if err := os.MkdirAll(".claude", 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(".claude", "PSAY.md"), []byte("custom"), 0o644); err != nil {
+	if err := runInit(); err != nil {
 		t.Fatal(err)
 	}
 	if err := runInit(); err != nil {
 		t.Fatal(err)
 	}
-	data, err := os.ReadFile(filepath.Join(".claude", "PSAY.md"))
+	data, err := os.ReadFile(filepath.Join(home, ".claude", "CLAUDE.md"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(data) != "custom" {
-		t.Errorf("existing .claude/PSAY.md overwritten with %q", data)
+	if got := strings.Count(string(data), psayStart); got != 1 {
+		t.Errorf("protocol block appears %d times, want 1", got)
+	}
+}
+
+func TestRunInitPreservesExisting(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+
+	path := filepath.Join(home, ".codex", "AGENTS.md")
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte("my rules\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := runInit(); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(string(data), "my rules\n") {
+		t.Errorf("existing content not preserved: %q", data)
 	}
 }
