@@ -3,11 +3,13 @@
 Announce key moments out loud with `psay` (macOS, must be in `PATH`):
 
 ```bash
-psay '[Action/Discovery] on [Target] because [Context]. [My Take / Advice]'
+psay 'what happened, why it matters, what next'
 ```
 
-Example: `psay 'Found deadlock in auth_service.go, holding manual tests while I refactor to atomic pointers.'`
+Talk like a colleague across the desk — plain words, contractions, one breath.
 
-* 1–2 sentences (~20 words) — you condense before calling.
+Example: `psay 'Deadlock in auth_service.go — holding manual tests while I move it to atomic pointers.'`
+
+* One sentence, two max (~15 words) — you condense before calling.
 * No code blocks, stack traces, or logs.
 * Starts, pivots, discoveries, recommendations only — never routine completion; report results silently.
