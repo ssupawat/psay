@@ -4,8 +4,9 @@
 set -eu
 
 REPO=ssupawat/psay
-VOICE=en_US-lessac-medium
+VOICE_DIR="$HOME/.psay/kokoro"
 BIN_DIR=${PSAY_BIN_DIR:-"$HOME/.local/bin"}
+KOKORO_BASE="https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1"
 
 case "$(uname -s)" in
 Darwin) ;;
@@ -37,23 +38,22 @@ mv "$tmp/psay" "$BIN_DIR/psay"
 chmod +x "$BIN_DIR/psay"
 echo "    installed $BIN_DIR/psay ($tag)"
 
-echo "==> Installing piper"
+echo "==> Setting up kokoro-onnx"
 if command -v uv >/dev/null 2>&1; then
-    uv tool install --force piper-tts
-elif command -v pipx >/dev/null 2>&1; then
-    pipx install --force piper-tts
+    uv venv "$HOME/.psay/venv" --python 3.12
+    uv pip install --python "$HOME/.psay/venv/bin/python" kokoro-onnx soundfile
+elif command -v python3 >/dev/null 2>&1; then
+    python3 -m venv "$HOME/.psay/venv"
+    "$HOME/.psay/venv/bin/pip" install --quiet kokoro-onnx soundfile
 else
-    echo "Need uv or pipx to install piper (brew install uv)" >&2
+    echo "Need uv or python3 to set up kokoro" >&2
     exit 1
 fi
 
-echo "==> Downloading voice $VOICE"
-mkdir -p "$HOME/.psay/voices"
-if ! uvx --from piper-tts python -m piper.download_voices "$VOICE" --download-dir "$HOME/.psay/voices"; then
-    base="https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium"
-    fetch "$base/$VOICE.onnx" "$HOME/.psay/voices/$VOICE.onnx"
-    fetch "$base/$VOICE.onnx.json" "$HOME/.psay/voices/$VOICE.onnx.json"
-fi
+echo "==> Downloading kokoro model (one-time, ~330MB)"
+mkdir -p "$VOICE_DIR"
+[ -f "$VOICE_DIR/kokoro-v1.0.onnx" ] || fetch "$KOKORO_BASE/kokoro-v1.0.onnx" "$VOICE_DIR/kokoro-v1.0.onnx"
+[ -f "$VOICE_DIR/voices-v1.0.bin" ] || fetch "$KOKORO_BASE/voices-v1.0.bin" "$VOICE_DIR/voices-v1.0.bin"
 
 case ":$PATH:" in
 *":$BIN_DIR:"*) ;;

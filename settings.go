@@ -8,14 +8,17 @@ import (
 )
 
 type Settings struct {
-	Voice       string            `json:"voice"`
-	LengthScale float64           `json:"length_scale"`
-	Lexicon     map[string]string `json:"lexicon"`
+	Voice   string            `json:"voice"`
+	Speed   float64           `json:"speed"`
+	Lexicon map[string]string `json:"lexicon"`
+
+	// OldLengthScale marks pre-kokoro settings files (piper's length_scale).
+	OldLengthScale float64 `json:"length_scale,omitempty"`
 }
 
 var defaultSettings = Settings{
-	Voice:       "en_US-lessac-medium",
-	LengthScale: 1.0,
+	Voice: "af_heart",
+	Speed: 1.0,
 	Lexicon: map[string]string{
 		"psay": "p say",
 		"aws":  "A W S",
@@ -55,6 +58,14 @@ func loadSettings() (Settings, error) {
 	var s Settings
 	if err := json.Unmarshal(data, &s); err != nil {
 		return Settings{}, fmt.Errorf("parse %s: %w", path, err)
+	}
+	if s.OldLengthScale != 0 || s.Voice == "" {
+		s.Voice = defaultSettings.Voice
+		s.Speed = defaultSettings.Speed
+		s.OldLengthScale = 0
+		if err := saveSettings(s); err != nil {
+			return Settings{}, err
+		}
 	}
 	return s, nil
 }

@@ -1,5 +1,5 @@
 #!/bin/sh
-# psay uninstaller: reverses install.sh (binary + piper + voice).
+# psay uninstaller: reverses install.sh (binary + kokoro venv + model).
 # Usage: curl -fsSL https://raw.githubusercontent.com/ssupawat/psay/main/uninstall.sh | sh
 # Keeps ~/.psay/settings.json (your lexicon). Pass --purge to remove it too.
 set -eu
@@ -15,13 +15,14 @@ else
     echo "no psay binary at $BIN_DIR/psay"
 fi
 
-if command -v uv >/dev/null 2>&1; then
-    uv tool uninstall piper-tts >/dev/null 2>&1 || true
+uv tool uninstall piper-tts >/dev/null 2>&1 || true
+rm -rf "$HOME/.psay/venv"
+echo "removed $HOME/.psay/venv (kokoro)"
+
+if [ -d "$HOME/.psay/kokoro" ]; then
+    rm -rf "$HOME/.psay/kokoro"
+    echo "removed $HOME/.psay/kokoro (model)"
 fi
-if command -v pipx >/dev/null 2>&1; then
-    pipx uninstall piper-tts >/dev/null 2>&1 || true
-fi
-echo "uninstalled piper-tts (if it was present)"
 
 if [ -d "$HOME/.psay/voices" ]; then
     rm -rf "$HOME/.psay/voices"

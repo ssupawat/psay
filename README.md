@@ -4,9 +4,9 @@ Speakable announcements for AI agents. psay turns developer jargon into short, s
 
 `psay "Found deadlock in auth_service.go due to A-B-A problem in the mutex pool."`
 
-→ Piper speaks: *"Found deadlock in auth service dot G-O due to A-B-A problem in the mutex pool."*
+→ Kokoro speaks: *"Found deadlock in auth service. Go. Due to A B A problem in the mutex pool."*
 
-Zero Go dependencies — stdlib only, plus the piper CLI and `afplay`.
+Zero Go dependencies — stdlib only, plus a small Python venv (kokoro-onnx) and `afplay`.
 
 ## Install
 
@@ -14,7 +14,7 @@ Zero Go dependencies — stdlib only, plus the piper CLI and `afplay`.
 curl -fsSL https://raw.githubusercontent.com/ssupawat/psay/main/install.sh | sh
 ```
 
-Installs the `psay` binary to `~/.local/bin`, piper via uv/pipx, and the default voice. Requires macOS. Or with Go: `go install github.com/ssupawat/psay@latest`. First announce: `psay 'Hello from psay.'` — config auto-initializes.
+Installs the `psay` binary to `~/.local/bin`, a kokoro-onnx venv at `~/.psay/venv`, and the Kokoro model (~330MB, one-time). Requires macOS. Or with Go: `go install github.com/ssupawat/psay@latest`. First announce: `psay 'Hello from psay.'` — config auto-initializes.
 
 Uninstall with the matching script (keeps your lexicon unless `--purge`):
 
@@ -24,7 +24,7 @@ curl -fsSL https://raw.githubusercontent.com/ssupawat/psay/main/uninstall.sh | s
 
 ## Problem
 
-Agent announces are spoken for human ears. The listening test showed piper's espeak front-end already reads most developer text correctly — camelCase (`getUserById` → "get user by I-D"), symbols (`x != y` → "ex not-equals why"), extensions (`auth_service.go` → "auth service dot go"), versions (`v1.2.3` → "vee one point two point three").
+Agent announces are spoken for human ears. The listening test showed kokoro's espeak-lineage front-end already reads most developer text correctly — camelCase (`getUserById` → "get user by I-D"), symbols (`x != y` → "ex not-equals why"), extensions (`auth_service.go` → "auth service dot go"), versions (`v1.2.3` → "vee one point two point three").
 
 What it gets wrong is a narrow class of word-level misreads:
 
@@ -42,12 +42,12 @@ psay sits between an AI agent and the TTS engine, running a text pipeline that t
 flowchart LR
   A["psay 'text'"] --> B["Lexicon replace
 ~/.psay/settings.json"]
-  B --> E["piper
--m voice --data-dir ~/.psay/voices"]
+  B --> E["kokoro
+af_heart → wav"]
   E --> F["afplay"]
 ```
 
-The listening test killed the planned identifier splitter and symbol mapper — espeak already does that work. What remains is the lexicon and the plumbing.
+The listening test killed the planned identifier splitter and symbol mapper — the G2P front-end already does that work. What remains is the lexicon and the plumbing.
 
 ## Agent protocol
 
@@ -59,13 +59,13 @@ psay '[Action/Discovery] on [Target] because [Context]. [My Take / Advice]'
 
 ## Dependencies
 
-Zero Go dependencies — everything is stdlib. External tools: piper (TTS) and `afplay` (playback).
+Zero Go dependencies — everything is stdlib. External tools: kokoro-onnx (TTS, in a venv) and `afplay` (playback).
 
 | Pipeline step | Implementation | Why |
 |---|---|---|
 | CLI parsing | stdlib `flag` package | `-v` voice override |
 | Home dir path | stdlib `os.UserHomeDir()` | Available since Go 1.12 |
-| TTS engine | [`OHF-Voice/piper1-gpl`](https://github.com/OHF-Voice/piper1-gpl) — `pip install piper-tts` | Local, offline neural TTS. Voice downloaded once via `python -m piper.download_voices <voice>`; model loads per run, fine for short announces |
+| TTS engine | [`thewh1teagle/kokoro-onnx`](https://github.com/thewh1teagle/kokoro-onnx) — `pip install kokoro-onnx soundfile` in `~/.psay/venv` | Local, offline neural TTS (Kokoro-82M). Model + voices downloaded once to `~/.psay/kokoro`; psay execs a 7-line embedded script |
 | Playback | macOS `afplay` | Built-in, plays the wav |
 
 ## Configuration
@@ -74,8 +74,8 @@ Settings live at `~/.psay/settings.json`:
 
 ```json
 {
-  "voice": "en_US-lessac-medium",
-  "length_scale": 1.0,
+  "voice": "af_heart",
+  "speed": 1.0,
   "lexicon": {
     "psay": "p say",
     "aws": "A W S",
@@ -88,5 +88,5 @@ Settings live at `~/.psay/settings.json`:
 }
 ```
 
-The config auto-initializes if missing. Install the voice once: `python -m piper.download_voices en_US-lessac-medium --download-dir ~/.psay/voices`, then invoke piper with `--data-dir ~/.psay/voices`. `length_scale` is piper's phoneme length — higher is slower. Lexicon is a simple key-value map — edit directly in a text editor. New misreads found in daily use become lexicon entries; code changes only if a whole token class proves broken.
+The config auto-initializes if missing; a pre-kokoro file (with `length_scale`) migrates automatically. Voices: `af_heart` (best), `af_bella`, `am_michael`, and more in [Kokoro-82M/VOICES.md](https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md). `speed` is kokoro's pace — higher is faster. Lexicon is a simple key-value map — edit directly in a text editor. New misreads found in daily use become lexicon entries; code changes only if a whole token class proves broken.
 

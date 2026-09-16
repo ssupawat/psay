@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	_ "embed"
 	"flag"
 	"fmt"
 	"os"
@@ -9,6 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 )
+
+//go:embed speak.py
+var speakScript string
 
 func main() {
 	voiceOverride := flag.String("v", "", "voice override")
@@ -42,18 +46,18 @@ func main() {
 	if *voiceOverride != "" {
 		voice = *voiceOverride
 	}
-	if settings.LengthScale <= 0 {
-		settings.LengthScale = 1.0
+	if settings.Speed <= 0 {
+		settings.Speed = defaultSettings.Speed
 	}
 
 	spoken := replaceLexicon(text, settings.Lexicon)
-	if err := speak(voice, settings.LengthScale, spoken); err != nil {
+	if err := speak(voice, settings.Speed, spoken); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func speak(voice string, lengthScale float64, text string) error {
+func speak(voice string, speed float64, text string) error {
 	psayDir, err := defaultDir()
 	if err != nil {
 		return err
@@ -66,16 +70,17 @@ func speak(voice string, lengthScale float64, text string) error {
 	defer os.RemoveAll(dir)
 	wav := filepath.Join(dir, "out.wav")
 
-	piper := exec.Command("piper",
-		"-m", voice,
-		"--data-dir", filepath.Join(psayDir, "voices"),
-		"--length-scale", fmt.Sprintf("%g", lengthScale),
-		"-f", wav,
-		"--", text,
+	python := filepath.Join(psayDir, "venv", "bin", "python")
+	kokoro := exec.Command(python, "-c", speakScript,
+		filepath.Join(psayDir, "kokoro", "kokoro-v1.0.onnx"),
+		filepath.Join(psayDir, "kokoro", "voices-v1.0.bin"),
+		voice,
+		fmt.Sprintf("%g", speed),
+		wav,
+		text,
 	)
-	if out, err := run(piper); err != nil {
-		return fmt.Errorf("piper: %w\n%s\nhint: python -m piper.download_voices %s --download-dir %s",
-			err, out, voice, filepath.Join(psayDir, "voices"))
+	if out, err := run(kokoro); err != nil {
+		return fmt.Errorf("kokoro: %w\n%s\nhint: run the psay install.sh to set up ~/.psay/venv and ~/.psay/kokoro", err, out)
 	}
 
 	_, err = run(exec.Command("afplay", wav))
