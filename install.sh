@@ -50,9 +50,9 @@ else
     exit 1
 fi
 
-echo "==> Downloading kokoro model (one-time, ~330MB)"
+echo "==> Downloading kokoro model (one-time, int8 ~110MB)"
 mkdir -p "$VOICE_DIR"
-[ -f "$VOICE_DIR/kokoro-v1.0.onnx" ] || fetch "$KOKORO_BASE/kokoro-v1.0.onnx" "$VOICE_DIR/kokoro-v1.0.onnx"
+[ -f "$VOICE_DIR/kokoro-v1.0.int8.onnx" ] || [ -f "$VOICE_DIR/kokoro-v1.0.onnx" ] || fetch "$KOKORO_BASE/kokoro-v1.0.int8.onnx" "$VOICE_DIR/kokoro-v1.0.int8.onnx"
 [ -f "$VOICE_DIR/voices-v1.0.bin" ] || fetch "$KOKORO_BASE/voices-v1.0.bin" "$VOICE_DIR/voices-v1.0.bin"
 
 case ":$PATH:" in

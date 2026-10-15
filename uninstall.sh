@@ -15,9 +15,13 @@ else
     echo "no psay binary at $BIN_DIR/psay"
 fi
 
-uv tool uninstall piper-tts >/dev/null 2>&1 || true
 rm -rf "$HOME/.psay/venv"
 echo "removed $HOME/.psay/venv (kokoro)"
+
+if [ -d "$HOME/.psay/cache" ]; then
+    rm -rf "$HOME/.psay/cache"
+    echo "removed $HOME/.psay/cache"
+fi
 
 if [ -d "$HOME/.psay/kokoro" ]; then
     rm -rf "$HOME/.psay/kokoro"

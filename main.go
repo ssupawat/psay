@@ -51,40 +51,10 @@ func main() {
 	}
 
 	spoken := replaceLexicon(text, settings.Lexicon)
-	if err := speak(voice, settings.Speed, spoken); err != nil {
+	if err := announce(voice, settings.Speed, spoken); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-}
-
-func speak(voice string, speed float64, text string) error {
-	psayDir, err := defaultDir()
-	if err != nil {
-		return err
-	}
-
-	dir, err := os.MkdirTemp("", "psay-*")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(dir)
-	wav := filepath.Join(dir, "out.wav")
-
-	python := filepath.Join(psayDir, "venv", "bin", "python")
-	kokoro := exec.Command(python, "-c", speakScript,
-		filepath.Join(psayDir, "kokoro", "kokoro-v1.0.onnx"),
-		filepath.Join(psayDir, "kokoro", "voices-v1.0.bin"),
-		voice,
-		fmt.Sprintf("%g", speed),
-		wav,
-		text,
-	)
-	if out, err := run(kokoro); err != nil {
-		return fmt.Errorf("kokoro: %w\n%s\nhint: run the psay install.sh to set up ~/.psay/venv and ~/.psay/kokoro", err, out)
-	}
-
-	_, err = run(exec.Command("afplay", wav))
-	return err
 }
 
 func run(cmd *exec.Cmd) (string, error) {
